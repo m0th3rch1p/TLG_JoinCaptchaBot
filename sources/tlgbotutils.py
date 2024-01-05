@@ -64,7 +64,7 @@ from telegram._utils.types import (
 )
 
 # PIL Text To Image Transformation Library
-from PIL import (Image, ImageDraw)
+from PIL import (Image, ImageDraw, ImageFont)
 
 ###############################################################################
 # Local Libraries
@@ -677,10 +677,41 @@ def tlg_get_msg(update: Update):
 
 def tlg_create_image_from_text(size, message):
     W, H = size
-    image = Image.new('RGB', size, color='black')
+    image = Image.new('RGB', size, color='#000000')
     draw = ImageDraw.Draw(image)
-    _, _, w, h = draw.textbbox((0, 0), message)
-    draw.text(((W-w)/2, (H-h)/2), message)
+    font_path = "./font/LiberationSans-Regular.ttf"
+    font_size = 24  # Slightly smaller font size for better fit
+    font = ImageFont.truetype(font_path, font_size)
+    text_color = "#ffffff"
+
+    # Wrap text to fit the image width
+    margin = 50  # Adjusted margin for better fit
+    max_width = W - 2 * margin
+
+    # Function to wrap text based on max width
+    def wrap_text(text, font, max_width):
+        lines = []
+        words = text.split()
+
+        while words:
+            line = ''
+            while words and draw.textsize(line + words[0], font=font)[0] <= max_width:
+                line += (words.pop(0) + ' ')
+            lines.append(line)
+
+        return '\n'.join(lines)
+
+    # Wrap text to fit the image width
+    wrapped_text = wrap_text(message, font, max_width)
+
+    # Calculate text height
+    text_height = draw.textsize(wrapped_text, font=font)[1]
+
+    # Calculate text start position for less padding on top and bottom
+    start_height = (H - text_height) // 2
+
+    # _, _, w, h = draw.textbbox((0, 0), message)
+    draw.text((margin, start_height), wrapped_text, font=font, fill=text_color)
 
     image.save(POLL_IMAGE_PATH, format="PNG")
 
