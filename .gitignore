@@ -6,3 +6,4 @@
 **/*.pkl
 **/*.log
 **/*.ignore
+sources/settings.py
